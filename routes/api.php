@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,6 +14,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::group([
+    'middleware' => ['cors'],
+], function ($router) {
+    Route::post('/workspace/setup', [WorkspaceController::class, 'setup']);
+    Route::get('/workspace/{file}', [WorkspaceController::class, 'getFile'])
+        ->where('file', '.*');
+    Route::post('/workspace/{file}', [WorkspaceController::class, 'saveCodeFrame'])
+        ->where('file', '.*');
+    Route::post('/workspace', [WorkspaceController::class, 'saveCodeFrames']);
 });

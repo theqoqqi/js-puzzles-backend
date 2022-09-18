@@ -1,3 +1,4 @@
-*
+!apps/
 !public/
 !.gitignore
+workspaces

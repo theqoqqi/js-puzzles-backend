@@ -1,0 +1,51 @@
+{
+    "title": "Тестовая задачка",
+    "description": "В этой тестовой задачке нужно будет дописать функцию рандома,<br />а также будет еще два файлика.",
+    "name": "test",
+    "appName": "test",
+    "mainPage": "index.html",
+    "variables": [
+        {
+            "name": "$",
+            "title": "jQuery",
+            "description": "Библиотека jQuery"
+        }
+    ],
+    "files": [
+        {
+            "title": "Хтмл файлик",
+            "description": "Это просто обычный хтмл файлик",
+            "file": "index.html",
+            "codeFrames": [
+                {
+                    "visibleLines": "11-14",
+                    "editableLines": "12-12"
+                },
+                {
+                    "visibleLines": "15-17",
+                    "editableLines": "15-15"
+                }
+            ]
+        },
+        {
+            "file": "index.js",
+            "codeFrames": [
+                {
+                    "title": "Рандом",
+                    "description": "Допиши функцию рандома",
+                    "visibleLines": "1-12",
+                    "editableLines": "9-11",
+                    "removedLines": "10-10"
+                }
+            ]
+        },
+        {
+            "file": "index.css",
+            "codeFrames": [
+                {
+                    "visibleLines": "1-13"
+                }
+            ]
+        }
+    ]
+}
