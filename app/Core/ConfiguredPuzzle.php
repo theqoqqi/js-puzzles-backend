@@ -75,7 +75,7 @@ class ConfiguredPuzzle {
             foreach ($puzzleFileProps->codeFrames as $codeFrame) {
                 $removedLines = $codeFrame->removedLines;
 
-                if ($removedLines) {
+                if (!$removedLines->isEmpty()) {
                     for ($i = $removedLines->start; $i <= $removedLines->end; $i++) {
                         $lines[$i - 1] = '';
                     }
