@@ -18,12 +18,16 @@
             "file": "index.html",
             "codeFrames": [
                 {
-                    "visibleLines": "11-14",
-                    "editableLines": "12-12"
+                    "visibleLines": "11-13",
+                    "editableLines": "12-12",
+                    "removedLines": "12-12"
                 },
                 {
-                    "visibleLines": "15-17",
-                    "editableLines": "15-15"
+                    "visibleLines": "18-20",
+                    "editableLines": "18-18"
+                },
+                {
+                    "removedLines": "15-15"
                 }
             ]
         },
