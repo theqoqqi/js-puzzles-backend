@@ -47,7 +47,11 @@ class WorkspaceController extends BaseController {
         $configuredPuzzle = ConfiguredPuzzle::fromWorkspace($userId);
         $path = $configuredPuzzle->getWorkspaceFilePath($file);
 
-        $headers = [];
+        $headers = [
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+        ];
+
         $mimeType = $this->getMimeType($file);
 
         if ($mimeType) {
