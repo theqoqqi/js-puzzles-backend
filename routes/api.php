@@ -15,9 +15,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group([
-    'middleware' => ['cors'],
+    'middleware' => ['guest.uuid', 'cors'],
 ], function ($router) {
     Route::post('/workspace/setup', [WorkspaceController::class, 'setup']);
+    Route::post('/workspace/load', [WorkspaceController::class, 'load']);
     Route::get('/workspace/{file}', [WorkspaceController::class, 'getFile'])
         ->where('file', '.*');
     Route::post('/workspace/{file}', [WorkspaceController::class, 'saveCodeFrame'])

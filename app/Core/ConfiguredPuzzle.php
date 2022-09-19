@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Storage;
 use function array_slice;
 use function array_splice;
 use function count;
-use function dd;
 use function explode;
 use function implode;
 use function json_decode;
@@ -25,31 +24,41 @@ class ConfiguredPuzzle {
 
     public Puzzle $puzzle;
 
-    public int $userId;
+    public string $userId;
 
-    public function __construct(Puzzle $puzzle, int $userId) {
+    public function __construct(Puzzle $puzzle, string $userId) {
         $this->puzzle = $puzzle;
         $this->userId = $userId;
     }
 
+    public function load() {
+        $this->setupWorkspaceConfig();
+    }
+
     public function setup() {
-        $this->setupWorkspace();
+        $this->setupPuzzleInstance();
+    }
+
+    private function setupPuzzleInstance(): void {
+        $appPath = storage_path('app/' . $this->getAppPath());
+        $workspacePath = storage_path('app/' . $this->getWorkspacePuzzleInstancePath());
+
+        Storage::deleteDirectory($this->getWorkspacePuzzleInstancePath());
+        File::copyDirectory($appPath, $workspacePath);
+
+        $this->createPuzzleConfig();
         $this->applyCodeFrames();
     }
 
-    private function setupWorkspace(): void {
-        $appPath = storage_path('app/' . $this->getAppPath());
-        $workspacePath = storage_path('app/' . $this->getWorkspaceAppPath());
-
-        Storage::deleteDirectory($this->getWorkspaceAppPath());
-        File::copyDirectory($appPath, $workspacePath);
-
-        $this->createWorkspaceConfig();
+    private function setupWorkspaceConfig(): void {
+        $config = WorkspaceConfig::forUser($this->userId);
+        $config->puzzle = $this->puzzle;
+        $config->save();
     }
 
-    private function createWorkspaceConfig(): void {
-        $configPath = $this->getWorkspaceConfigPath();
-        $config = WorkspaceConfig::create($this->puzzle);
+    private function createPuzzleConfig(): void {
+        $configPath = $this->getWorkspacePuzzleConfigPath();
+        $config = PuzzleConfig::create($this->puzzle);
 
         Storage::put($configPath, json_encode($config->toJson()));
     }
@@ -74,8 +83,8 @@ class ConfiguredPuzzle {
         }
     }
 
-    private static function getPuzzleFromWorkspace(int $userId): Puzzle {
-        $config = self::getWorkspaceConfig($userId);
+    private static function getPuzzleFromWorkspace(string $userId): Puzzle {
+        $config = WorkspaceConfig::forUser($userId);
 
         return $config->puzzle;
     }
@@ -106,8 +115,8 @@ class ConfiguredPuzzle {
     }
 
     public function setCodeFrameContents(string $file, int $codeFrameIndex, string $frameContents) {
-        $configPath = self::getWorkspaceConfigPathForUserId($this->userId);
-        $config = self::getWorkspaceConfig($this->userId);
+        $configPath = self::getWorkspacePuzzleConfigPathFor($this->puzzle->name, $this->userId);
+        $config = self::getPuzzleConfig($this->puzzle->name, $this->userId);
         $fileProps = $config->getFileProps($file);
         $range = $fileProps->codeFrames[$codeFrameIndex];
         $path = $this->getWorkspaceFilePath($file);
@@ -130,47 +139,61 @@ class ConfiguredPuzzle {
         Storage::put($configPath, json_encode($config->toJson()));
     }
 
-    public static function setupFrom(string $puzzleName, int $userId): ConfiguredPuzzle {
+    public static function exists(string $puzzleName, string $userId): bool {
+        $puzzleConfigPath = self::getWorkspacePuzzleConfigPathFor($puzzleName, $userId);
+
+        return Storage::exists($puzzleConfigPath);
+    }
+
+    public static function loadFrom(string $puzzleName, string $userId): ConfiguredPuzzle {
         $puzzle = Resources::loadPuzzle($puzzleName);
 
         $configuredPuzzle = new ConfiguredPuzzle($puzzle, $userId);
+
+        $configuredPuzzle->load();
+
+        return $configuredPuzzle;
+    }
+
+    public static function setupFrom(string $puzzleName, string $userId): ConfiguredPuzzle {
+        $configuredPuzzle = self::loadFrom($puzzleName, $userId);
 
         $configuredPuzzle->setup();
 
         return $configuredPuzzle;
     }
 
-    public static function fromWorkspace(int $userId): ConfiguredPuzzle {
+    public static function fromWorkspace(string $userId): ConfiguredPuzzle {
         $puzzle = self::getPuzzleFromWorkspace($userId);
 
         return new ConfiguredPuzzle($puzzle, $userId);
     }
 
-    private static function getWorkspaceConfig(int $userId): WorkspaceConfig {
-        $configPath = self::getWorkspaceConfigPathForUserId($userId);
+    private static function getPuzzleConfig(string $puzzleName, string $userId): PuzzleConfig {
+        $configPath = self::getWorkspacePuzzleConfigPathFor($puzzleName, $userId);
         $configText = Storage::get($configPath);
         $configJson = json_decode($configText, true);
 
-        return WorkspaceConfig::fromJson($configJson);
+        return PuzzleConfig::fromJson($configJson);
     }
 
     public function getAppPath(): string {
         return "apps/{$this->puzzle->appName}";
     }
 
-    public function getWorkspaceConfigPath(): string {
-        return "workspaces/$this->userId/config.json";
-    }
-
-    public function getWorkspaceAppPath(): string {
-        return "workspaces/$this->userId/app";
-    }
-
     public function getWorkspaceFilePath(string $file): string {
-        return "workspaces/$this->userId/app/$file";
+        return $this->getWorkspacePuzzleInstancePath() . '/' . $file;
     }
 
-    public static function getWorkspaceConfigPathForUserId($userId): string {
-        return "workspaces/$userId/config.json";
+    public function getWorkspacePuzzleInstancePath(): string {
+        return "workspaces/$this->userId/puzzles/{$this->puzzle->name}/app";
+    }
+
+    public function getWorkspacePuzzleConfigPath(): string {
+        return self::getWorkspacePuzzleConfigPathFor($this->puzzle->name, $this->userId);
+    }
+
+    public static function getWorkspacePuzzleConfigPathFor(string $puzzleName, string $userId): string {
+        return "workspaces/$userId/puzzles/{$puzzleName}/config.json";
     }
 }

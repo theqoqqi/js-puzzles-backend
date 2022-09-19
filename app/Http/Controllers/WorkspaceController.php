@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Core\ConfiguredPuzzle;
+use App\Http\Middleware\GenerateGuestUuid;
+use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -10,6 +12,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Webpatser\Uuid\Uuid;
+use function env;
 use function response;
 
 class WorkspaceController extends BaseController {
@@ -20,6 +24,21 @@ class WorkspaceController extends BaseController {
         $puzzleName = $request->post('puzzle');
 
         $configuredPuzzle = ConfiguredPuzzle::setupFrom($puzzleName, $userId);
+
+        return response()->json([
+            'puzzle' => $configuredPuzzle->toJson(),
+        ]);
+    }
+
+    public function load(Request $request): JsonResponse {
+        $userId = $this->getUserId($request);
+        $puzzleName = $request->post('puzzle');
+
+        if (ConfiguredPuzzle::exists($puzzleName, $userId)) {
+            $configuredPuzzle = ConfiguredPuzzle::loadFrom($puzzleName, $userId);
+        } else {
+            $configuredPuzzle = ConfiguredPuzzle::setupFrom($puzzleName, $userId);
+        }
 
         return response()->json([
             'puzzle' => $configuredPuzzle->toJson(),
@@ -74,7 +93,15 @@ class WorkspaceController extends BaseController {
     }
 
     private function getUserId(Request $request): string {
-        return 1; // TODO: get from request or else
+        if (env('APP_ENV') === 'local') {
+            try {
+                return Uuid::generate(5, $request->getClientIp(), Uuid::NS_URL);
+            } catch (Exception $e) {
+                return $request->getClientIp();
+            }
+        }
+
+        return $request->cookie(GenerateGuestUuid::COOKIE_NAME);
     }
 
     private function getMimeType(string $file): ?string {

@@ -7,55 +7,73 @@
 namespace App\Core;
 
 use App\Core\Json\Puzzle;
-use function collect;
+use Illuminate\Support\Facades\Storage;
+use function json_decode;
+use function json_encode;
 
 class WorkspaceConfig {
 
     public Puzzle $puzzle;
 
-    /**
-     * @var WorkspaceFileProps[]
-     */
-    public array $files;
+    public array $puzzles = [];
 
-    private function initFromPuzzle(Puzzle $puzzle) {
-        $this->puzzle = $puzzle;
-        $this->files = collect($puzzle->files)
-            ->map([WorkspaceFileProps::class, 'fromProps'])
-            ->toArray();
+    public string $userId;
+
+    public function __construct(string $userId) {
+        $this->userId = $userId;
+    }
+
+    public function setPuzzleSolved(string $puzzle, bool $isSolved) {
+        $this->puzzles[$puzzle] ??= [];
+        $this->puzzles[$puzzle]['solved'] = $isSolved;
+    }
+
+    public function save() {
+        $configPath = self::getWorkspaceConfigPathForUserId($this->userId);
+
+        Storage::put($configPath, json_encode($this->toJson()));
     }
 
     private function initFromJson(array $json): void {
         $this->puzzle = Resources::loadPuzzle($json['puzzle']);
-        $this->files = collect($json['files'])
-            ->map([WorkspaceFileProps::class, 'fromJson'])
-            ->toArray();
+        $this->puzzles = $json['puzzles'];
     }
 
-    public function toJson(): array {
+    private function toJson(): array {
         return [
             'puzzle' => $this->puzzle->name,
-            'files' => collect($this->files)
-                ->map([WorkspaceFileProps::class, 'toJson'])
-                ->toArray(),
+            'puzzles' => $this->puzzles,
         ];
     }
 
-    public function getFileProps(string $path): WorkspaceFileProps {
-        return collect($this->files)->firstWhere('file', $path);
+    private static function create($userId): WorkspaceConfig {
+        return new WorkspaceConfig($userId);
     }
 
-    public static function create(Puzzle $puzzle): WorkspaceConfig {
-        $config = new WorkspaceConfig();
-        $config->initFromPuzzle($puzzle);
-
-        return $config;
-    }
-
-    public static function fromJson(array $configJson): WorkspaceConfig {
-        $config = new WorkspaceConfig();
+    private static function fromJson(array $configJson, string $userId): WorkspaceConfig {
+        $config = new WorkspaceConfig($userId);
         $config->initFromJson($configJson);
 
         return $config;
+    }
+
+    public static function forUser(string $userId): WorkspaceConfig {
+        $configPath = self::getWorkspaceConfigPathForUserId($userId);
+
+        if (Storage::exists($configPath)) {
+            $configText = Storage::get($configPath);
+            $configJson = json_decode($configText, true);
+
+            $config = self::fromJson($configJson, $userId);
+        } else {
+            $config = WorkspaceConfig::create($userId);
+            $config->save();
+        }
+
+        return $config;
+    }
+
+    private static function getWorkspaceConfigPathForUserId(string $userId): string {
+        return "workspaces/$userId/config.json";
     }
 }
