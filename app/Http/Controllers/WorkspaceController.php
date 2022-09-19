@@ -3,17 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Core\ConfiguredPuzzle;
-use App\Http\Middleware\GenerateGuestUuid;
-use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller as BaseController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Webpatser\Uuid\Uuid;
-use function env;
 use function response;
 
 class WorkspaceController extends BaseController {
@@ -90,18 +85,6 @@ class WorkspaceController extends BaseController {
         $configuredPuzzle->setCodeFrameContents($file, $codeFrameIndex, $newContents);
 
         return response()->json([]);
-    }
-
-    private function getUserId(Request $request): string {
-        if (env('APP_ENV') === 'local') {
-            try {
-                return Uuid::generate(5, $request->getClientIp(), Uuid::NS_URL);
-            } catch (Exception $e) {
-                return $request->getClientIp();
-            }
-        }
-
-        return $request->cookie(GenerateGuestUuid::COOKIE_NAME);
     }
 
     private function getMimeType(string $file): ?string {

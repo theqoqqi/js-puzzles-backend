@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PuzzlesController;
 use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,14 +15,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::group([
-    'middleware' => ['guest.uuid', 'cors'],
-], function ($router) {
-    Route::post('/workspace/setup', [WorkspaceController::class, 'setup']);
-    Route::post('/workspace/load', [WorkspaceController::class, 'load']);
-    Route::get('/workspace/{file}', [WorkspaceController::class, 'getFile'])
-        ->where('file', '.*');
-    Route::post('/workspace/{file}', [WorkspaceController::class, 'saveCodeFrame'])
-        ->where('file', '.*');
-    Route::post('/workspace', [WorkspaceController::class, 'saveCodeFrames']);
+Route::get('/puzzles', [PuzzlesController::class, 'getPuzzleList']);
+
+Route::prefix('/workspace')->group(function ($router) {
+    Route::post('/setup', [WorkspaceController::class, 'setup']);
+    Route::post('/load', [WorkspaceController::class, 'load']);
+    Route::get('/{file}', [WorkspaceController::class, 'getFile'])->where('file', '.*');
+    Route::post('/{file}', [WorkspaceController::class, 'saveCodeFrame'])->where('file', '.*');
+    Route::post('', [WorkspaceController::class, 'saveCodeFrames']);
 });
