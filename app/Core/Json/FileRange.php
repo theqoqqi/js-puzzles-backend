@@ -23,6 +23,28 @@ class FileRange {
         return $this->start === 0 && $this->end === 0;
     }
 
+    public function modifySize(int $modifyBy): int {
+        return $this->resize($this->getLength() + $modifyBy);
+    }
+
+    public function resize(int $newLength): int {
+        $oldLength = $this->getLength();
+
+        $this->end -= $oldLength;
+        $this->end += $newLength;
+
+        return $newLength - $oldLength;
+    }
+
+    public function move(int $delta): void {
+        $this->start += $delta;
+        $this->end += $delta;
+    }
+
+    public function getLength(): int {
+        return $this->end - $this->start + 1;
+    }
+
     public static function fromString(string $range = null): FileRange {
         $parts = explode('-', $range);
 

@@ -12,7 +12,7 @@ class CodeFrame {
 
     public string $description;
 
-    public FileRange $visibleLines;
+    public ?FileRange $visibleLines;
 
     public ?FileRange $editableLines;
 
@@ -21,13 +21,9 @@ class CodeFrame {
     public function __construct(array $json) {
         $this->title = $json['title'] ?? '';
         $this->description = $json['description'] ?? '';
-        $this->visibleLines = FileRange::fromString($json['visibleLines']);
-        $this->editableLines = isset($json['editableLines'])
-            ? FileRange::fromString($json['editableLines'])
-            : null;
-        $this->removedLines = isset($json['removedLines'])
-            ? FileRange::fromString($json['removedLines'])
-            : null;
+        $this->visibleLines = FileRange::fromString($json['visibleLines'] ?? '0-0');;
+        $this->editableLines = FileRange::fromString($json['editableLines'] ?? '0-0');
+        $this->removedLines = FileRange::fromString($json['removedLines'] ?? '0-0');
     }
 
     public static function fromJson(array $json): CodeFrame {

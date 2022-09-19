@@ -13,12 +13,14 @@ use Illuminate\Support\Facades\Storage;
 use function array_slice;
 use function array_splice;
 use function count;
+use function define;
 use function explode;
 use function implode;
 use function json_decode;
 use function json_encode;
 use function storage_path;
-use const PHP_EOL;
+
+define('EOL', "\n");
 
 class ConfiguredPuzzle {
 
@@ -36,7 +38,9 @@ class ConfiguredPuzzle {
     }
 
     public function setup() {
+        $this->setupWorkspaceConfig();
         $this->setupPuzzleInstance();
+        $this->setupCodeFrames();
     }
 
     private function setupPuzzleInstance(): void {
@@ -47,7 +51,6 @@ class ConfiguredPuzzle {
         File::copyDirectory($appPath, $workspacePath);
 
         $this->createPuzzleConfig();
-        $this->applyCodeFrames();
     }
 
     private function setupWorkspaceConfig(): void {
@@ -63,11 +66,11 @@ class ConfiguredPuzzle {
         Storage::put($configPath, json_encode($config->toJson()));
     }
 
-    private function applyCodeFrames(): void {
+    private function setupCodeFrames(): void {
         foreach ($this->puzzle->files as $puzzleFileProps) {
             $path = $this->getWorkspaceFilePath($puzzleFileProps->file);
             $contents = Storage::get($path);
-            $lines = explode(PHP_EOL, $contents);
+            $lines = explode(EOL, $contents);
 
             foreach ($puzzleFileProps->codeFrames as $codeFrame) {
                 $removedLines = $codeFrame->removedLines;
@@ -79,7 +82,7 @@ class ConfiguredPuzzle {
                 }
             }
 
-            Storage::put($path, implode(PHP_EOL, $lines));
+            Storage::put($path, implode(EOL, $lines));
         }
     }
 
@@ -90,52 +93,106 @@ class ConfiguredPuzzle {
     }
 
     public function toJson(): array {
+        $config = self::getPuzzleConfig($this->puzzle->name, $this->userId);
         $json = $this->puzzle->json;
 
         foreach ($this->puzzle->files as $fileIndex => $puzzleFileProps) {
             foreach ($puzzleFileProps->codeFrames as $codeFrameIndex => $codeFrame) {
-                $contents = $this->getFrameContents($puzzleFileProps->file, $codeFrame->visibleLines);
+                $editedRange = $config->files[$fileIndex]->codeFrames[$codeFrameIndex];
+                $framesJson = $json['files'][$fileIndex]['codeFrames'];
+                $fixedFrames = $this->fixCodeFramesInJson($framesJson, $codeFrameIndex, $editedRange);
+                $json['files'][$fileIndex]['codeFrames'] = $fixedFrames;
+                $fixedVisibleLines = FileRange::fromString($fixedFrames[$codeFrameIndex]['visibleLines'] ?? '0-0');
+                $contents = $this->getFrameContents($puzzleFileProps->file, $fixedVisibleLines);
 
-                $json['files'][$fileIndex]['codeFrames'][$codeFrameIndex]['contents'] = $contents;
+                $newCodeFrameJson = $fixedFrames[$codeFrameIndex];
+                $newCodeFrameJson['contents'] = $contents;
+
+                $json['files'][$fileIndex]['codeFrames'][$codeFrameIndex] = $newCodeFrameJson;
             }
         }
 
         return $json;
     }
 
+    private function fixCodeFramesInJson(array $framesJson, int $frameIndex, FileRange $editedLines): array {
+        $codeFrameJson = $framesJson[$frameIndex];
+        $editableLines = FileRange::fromString($codeFrameJson['editableLines'] ?? '0-0');
+        $delta = $editedLines->getLength() - $editableLines->getLength();
+
+        if ($delta === 0) {
+            return $framesJson;
+        }
+
+        $visibleLines = FileRange::fromString($codeFrameJson['visibleLines'] ?? '0-0');
+
+        $visibleLines->modifySize($delta);
+        $editableLines->modifySize($delta);
+
+        $framesJson[$frameIndex]['visibleLines'] = FileRange::toString($visibleLines);
+        $framesJson[$frameIndex]['editableLines'] = FileRange::toString($editableLines);
+
+        $frameCount = count($framesJson);
+
+        for ($i = $frameIndex + 1; $i < $frameCount; $i++) {
+            $visibleLines = FileRange::fromString($framesJson[$i]['visibleLines'] ?? '0-0');
+            $editableLines = FileRange::fromString($framesJson[$i]['editableLines'] ?? '0-0');
+            $removedLines = FileRange::fromString($framesJson[$i]['removedLines'] ?? '0-0');
+
+            if (!$visibleLines->isEmpty()) {
+                $visibleLines->move($delta);
+            }
+            if (!$editableLines->isEmpty()) {
+                $editableLines->move($delta);
+            }
+            if (!$removedLines->isEmpty()) {
+                $removedLines->move($delta);
+            }
+
+            $framesJson[$i]['visibleLines'] = FileRange::toString($visibleLines);
+            $framesJson[$i]['editableLines'] = FileRange::toString($editableLines);
+            $framesJson[$i]['removedLines'] = FileRange::toString($removedLines);
+        }
+
+        return $framesJson;
+    }
+
     private function getFrameContents(string $file, FileRange $range): string {
+        if ($range->isEmpty()) {
+            return '';
+        }
+
         $path = $this->getWorkspaceFilePath($file);
         $contents = Storage::get($path);
-        $lines = explode(PHP_EOL, $contents);
+        $lines = explode(EOL, $contents);
         $start = $range->start;
         $length = $range->end - $start + 1;
         $visibleLines = array_slice($lines, $start - 1, $length);
 
-        return implode(PHP_EOL, $visibleLines);
+        return implode(EOL, $visibleLines);
     }
 
-    public function setCodeFrameContents(string $file, int $codeFrameIndex, string $frameContents) {
+    public function setCodeFrameContents(string $file, int $codeFrameIndex, string $newFrameContents) {
         $configPath = self::getWorkspacePuzzleConfigPathFor($this->puzzle->name, $this->userId);
         $config = self::getPuzzleConfig($this->puzzle->name, $this->userId);
         $fileProps = $config->getFileProps($file);
-        $range = $fileProps->codeFrames[$codeFrameIndex];
+        $range = $fileProps->getCodeFrameRange($codeFrameIndex);
         $path = $this->getWorkspaceFilePath($file);
 
-        $oldContents = Storage::get($path);
-        $oldLines = explode(PHP_EOL, $oldContents);
-        $frameLines = explode(PHP_EOL, $frameContents);
+        $oldFrameContents = Storage::get($path);
+        $oldFrameLines = explode(EOL, $oldFrameContents);
+        $newFrameLines = explode(EOL, $newFrameContents);
 
         $start = $range->start;
         $length = $range->end - $start + 1;
 
-        $newLines = $oldLines;
-        array_splice($newLines, $start - 1, $length, $frameLines);
-        $newContents = implode(PHP_EOL, $newLines);
+        $newFileLines = $oldFrameLines;
+        array_splice($newFileLines, $start - 1, $length, $newFrameLines);
+        $newFileContents = implode(EOL, $newFileLines);
 
-        $range->end -= $length;
-        $range->end += count($frameLines);
+        $fileProps->resizeCodeFrame($codeFrameIndex, count($newFrameLines));
 
-        Storage::put($path, $newContents);
+        Storage::put($path, $newFileContents);
         Storage::put($configPath, json_encode($config->toJson()));
     }
 
@@ -156,7 +213,9 @@ class ConfiguredPuzzle {
     }
 
     public static function setupFrom(string $puzzleName, string $userId): ConfiguredPuzzle {
-        $configuredPuzzle = self::loadFrom($puzzleName, $userId);
+        $puzzle = Resources::loadPuzzle($puzzleName);
+
+        $configuredPuzzle = new ConfiguredPuzzle($puzzle, $userId);
 
         $configuredPuzzle->setup();
 
