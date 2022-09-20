@@ -36,7 +36,7 @@ class Puzzle {
         $this->title = $json['title'] ?? '';
         $this->description = $json['description'] ?? '';
         $this->mainPage = $json['mainPage'];
-        $this->variables = $json['variables'];
+        $this->variables = $json['variables'] ?? [];
         $this->files = collect($json['files'])
             ->map([PuzzleFileProps::class, 'fromJson'])
             ->toArray();
