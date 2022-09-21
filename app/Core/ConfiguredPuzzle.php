@@ -8,6 +8,7 @@ namespace App\Core;
 
 use App\Core\Json\FileRange;
 use App\Core\Json\Puzzle;
+use Error;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use function array_slice;
@@ -19,6 +20,7 @@ use function implode;
 use function json_decode;
 use function json_encode;
 use function storage_path;
+use const EOL;
 
 define('EOL', "\n");
 
@@ -35,12 +37,15 @@ class ConfiguredPuzzle {
 
     public function load() {
         $this->setupWorkspaceConfig();
+        $this->fixJson();
     }
 
     public function setup() {
         $this->setupWorkspaceConfig();
         $this->setupPuzzleInstance();
         $this->setupCodeFrames();
+        $this->fixJson();
+        $this->insertReplacements();
     }
 
     private function setupPuzzleInstance(): void {
@@ -86,13 +91,50 @@ class ConfiguredPuzzle {
         }
     }
 
-    private static function getPuzzleFromWorkspace(string $userId): Puzzle {
+    private function insertReplacements(): void {
+        $json = $this->puzzle->json;
+
+        foreach ($this->puzzle->files as $fileIndex => $puzzleFileProps) {
+            $path = $this->getWorkspaceFilePath($puzzleFileProps->file);
+            $contents = Storage::get($path);
+            $lines = explode(EOL, $contents);
+
+            foreach ($puzzleFileProps->codeFrames as $codeFrameIndex => $codeFrame) {
+                $editableLines = $codeFrame->editableLines;
+                $replacement = $codeFrame->replacement;
+
+                if (!$editableLines->isEmpty() && $replacement) {
+                    $replacementLines = explode(EOL, $replacement);
+                    $fromIndex = $editableLines->start - 1;
+                    $length = $editableLines->getLength();
+
+                    array_splice($lines, $fromIndex, $length, $replacementLines);
+
+                    $framesJson = $json['files'][$fileIndex]['codeFrames'];
+                    $fixedFrames = $this->fixCodeFramesInJson($framesJson, $codeFrameIndex, $editableLines);
+                    $json['files'][$fileIndex]['codeFrames'] = $fixedFrames;
+
+                    $json['files'][$fileIndex]['codeFrames'][$codeFrameIndex]['editedContents'] = $replacement;
+                }
+            }
+
+            Storage::put($path, implode(EOL, $lines));
+        }
+
+        $this->puzzle->json = $json;
+    }
+
+    private static function getPuzzleFromWorkspace(string $userId): ?Puzzle {
         $config = WorkspaceConfig::forUser($userId);
 
         return $config->puzzle;
     }
 
     public function toJson(): array {
+        return $this->puzzle->json;
+    }
+
+    public function fixJson(): void {
         $config = self::getPuzzleConfig($this->puzzle->name, $this->userId);
         $json = $this->puzzle->json;
 
@@ -112,7 +154,7 @@ class ConfiguredPuzzle {
             }
         }
 
-        return $json;
+        $this->puzzle->json = $json;
     }
 
     private function fixCodeFramesInJson(array $framesJson, int $frameIndex, FileRange $editedLines): array {
@@ -224,6 +266,10 @@ class ConfiguredPuzzle {
 
     public static function fromWorkspace(string $userId): ConfiguredPuzzle {
         $puzzle = self::getPuzzleFromWorkspace($userId);
+
+        if (!$puzzle) {
+            throw new Error('Puzzle does not exists');
+        }
 
         return new ConfiguredPuzzle($puzzle, $userId);
     }

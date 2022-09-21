@@ -13,7 +13,7 @@ use function json_encode;
 
 class WorkspaceConfig {
 
-    public Puzzle $puzzle;
+    public ?Puzzle $puzzle = null;
 
     public array $puzzles = [];
 
@@ -35,13 +35,13 @@ class WorkspaceConfig {
     }
 
     private function initFromJson(array $json): void {
-        $this->puzzle = Resources::loadPuzzle($json['puzzle']);
-        $this->puzzles = $json['puzzles'];
+        $this->puzzle = $json['puzzle'] ? Resources::loadPuzzle($json['puzzle']) : null;
+        $this->puzzles = $json['puzzles'] ?? [];
     }
 
     private function toJson(): array {
         return [
-            'puzzle' => $this->puzzle->name,
+            'puzzle' => optional($this->puzzle)->name ?? null,
             'puzzles' => $this->puzzles,
         ];
     }
