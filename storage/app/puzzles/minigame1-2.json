@@ -1,0 +1,40 @@
+{
+    "title": "Мини-игра 1: Добавляем яблоки",
+    "description": "<p>\n    Теперь добавим на карту немного яблок.<br />\n    Просто создай на экране несколько красных кружочков, следуя примеру.\n</p>",
+    "order": 2,
+    "name": "minigame1-2",
+    "appName": "minigame",
+    "mainPage": "points.html",
+    "preferredIframeWidth": 650,
+    "preferredIframeHeight": 520,
+    "variables": [
+        {
+            "name": "worldWidth",
+            "title": "Ширина карты"
+        },
+        {
+            "name": "worldHeight",
+            "title": "Высота карты"
+        },
+        {
+            "name": "addPoint(x, y, width, height)",
+            "title": "Добавить на карту еду",
+            "description": "Добавляет на карту яблоко размерами <var>width</var> x <var>height</var> на координаты (<var>x</var>, <var>y</var>)"
+        }
+    ],
+    "files": [
+        {
+            "file": "games/points.js",
+            "codeFrames": [
+                {
+                    "visibleLines": "18-29",
+                    "editableLines": "23-27",
+                    "replacement": "    addPoint(50, 50, 20, 20);"
+                },
+                {
+                    "removedLines": "31-31"
+                }
+            ]
+        }
+    ]
+}

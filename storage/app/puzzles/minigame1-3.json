@@ -1,0 +1,34 @@
+{
+    "title": "Мини-игра 1: Разбрасываем яблоки",
+    "description": "<p>\n    Хорошо, мы добавили яблоки, но теперь их нужно разбросать по карте. Каркас для функции уже есть и использован в нужно месте, остается только написать сам код для функции.\n</p>\n<p>\n    В общем, нам нужно обойти каждое яблоко и переместить на случайную позицию.\n</p>",
+    "order": 3,
+    "name": "minigame1-3",
+    "appName": "minigame",
+    "mainPage": "points.html",
+    "preferredIframeWidth": 650,
+    "preferredIframeHeight": 520,
+    "variables": [
+        {
+            "name": "getAllPoints()",
+            "title": "Получить список яблок",
+            "description": "Возвращает массив яблок, которые есть на карте"
+        },
+        {
+            "name": "movePointToRandomFreePlace(point)",
+            "title": "Переместить яблоко",
+            "description": "Перемещает яблоко (<var>point</var>) в случайную свободную точку на карте"
+        }
+    ],
+    "files": [
+        {
+            "file": "games/points.js",
+            "codeFrames": [
+                {
+                    "visibleLines": "91-95",
+                    "editableLines": "92-94",
+                    "removedLines": "92-94"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,54 @@
+{
+    "title": "Мини-игра 1: Создаем управление",
+    "description": "<p>\n    Теперь нам нужно заставить игрока двигаться, ибо он, совершенно внезапно, разучился.\n</p>\n<p>\n    Нужно перемещать игрока на определенное расстояние в зависимости от нажатых на данный момент кнопок управления.\n</p>\n<p>\n    Сама функция <code>handleUserInput()</code> вызывается каждый игровой кадр (а точнее, 40 раз в секунду).\n</p>",
+    "order": 5,
+    "name": "minigame1-5",
+    "appName": "minigame",
+    "mainPage": "points.html",
+    "preferredIframeWidth": 650,
+    "preferredIframeHeight": 520,
+    "variables": [
+        {
+            "name": "isUpPressed",
+            "title": "Нажата ли кнопка вверх?",
+            "description": "Содержит <var>true</var>, если кнопка нажата, иначе - <var>false</var>."
+        },
+        {
+            "name": "isDownPressed",
+            "title": "Нажата ли кнопка вниз?",
+            "description": "Содержит <var>true</var>, если кнопка нажата, иначе - <var>false</var>."
+        },
+        {
+            "name": "isLeftPressed",
+            "title": "Нажата ли кнопка влево?",
+            "description": "Содержит <var>true</var>, если кнопка нажата, иначе - <var>false</var>."
+        },
+        {
+            "name": "isRightPressed",
+            "title": "Нажата ли кнопка вправо?",
+            "description": "Содержит <var>true</var>, если кнопка нажата, иначе - <var>false</var>."
+        },
+        {
+            "name": "playerSpeed",
+            "title": "Скорость игрока",
+            "description": "Расстояние, на которое должен перемещаться игрок за один кадр."
+        },
+        {
+            "name": "movePlayerBy(byX, byY)",
+            "title": "Переместить игрока",
+            "description": "Перемещает игрока на <var>byX</var> пикселей по оси <var>x</var> и <var>byY</var> пикселей по оси <var>y</var>."
+        }
+    ],
+    "files": [
+        {
+            "file": "games/points.js",
+            "codeFrames": [
+                {
+                    "visibleLines": "48-63",
+                    "editableLines": "54-62",
+                    "removedLines": "54-62"
+                }
+            ]
+        }
+    ]
+}

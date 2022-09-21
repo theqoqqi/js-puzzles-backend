@@ -1,0 +1,16 @@
+
+.wall {
+    background-color: lightgray;
+}
+
+.point {
+    background-color: #cd2d2d;
+    border: 1px solid #0b2e13;
+    border-radius: 50%;
+}
+
+.player {
+    background-color: #0f74a8;
+    border: 1px solid #0d47a1;
+    border-radius: 4px;
+}

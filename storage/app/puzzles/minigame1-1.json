@@ -1,0 +1,48 @@
+{
+    "title": "Мини-игра 1: Добавляем стены",
+    "description": "<p>\n    Начнем с того, что добавим на карту стены, чтобы игрок не мог выйти за ее пределы.<br />\n    Для примера уже создана одна стена, осталось только создать все остальные.\n</p>",
+    "order": 1,
+    "name": "minigame1-1",
+    "appName": "minigame",
+    "mainPage": "points.html",
+    "preferredIframeWidth": 650,
+    "preferredIframeHeight": 520,
+    "variables": [
+        {
+            "name": "worldWidth",
+            "title": "Ширина карты"
+        },
+        {
+            "name": "worldHeight",
+            "title": "Высота карты"
+        },
+        {
+            "name": "addBoundingWalls(width)",
+            "title": "Добавить на карту границы",
+            "description": "Добавляет по краям карты стены шириной <var>width</var>"
+        },
+        {
+            "name": "addWall(x, y, width, height)",
+            "title": "Добавить на карту стену",
+            "description": "Добавляет на карту стену размерами <var>width</var> x <var>height</var> на координаты (<var>x</var>, <var>y</var>)"
+        }
+    ],
+    "files": [
+        {
+            "file": "games/points.js",
+            "codeFrames": [
+                {
+                    "visibleLines": "16-21",
+                    "editableLines": "16-21",
+                    "replacement": "    addWall(300, 300, 40, 140);"
+                },
+                {
+                    "removedLines": "23-27"
+                },
+                {
+                    "visibleLines": "28-29"
+                }
+            ]
+        }
+    ]
+}

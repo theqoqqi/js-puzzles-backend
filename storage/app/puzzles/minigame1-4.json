@@ -1,0 +1,49 @@
+{
+    "title": "Мини-игра 1: Учимся собирать яблоки",
+    "description": "<p>\n    Отлично, научили игру перемещать яблоки при старте. Теперь нужно научить ее реагировать на то, что игрок ест яблоки.\n</p>\n<p>\n    Делать мы это будем простым способом: игра будет каждый кадр вызывать функцию <code>updateEatenPoints()</code>, а она, в свою очередь, будет перемещать съеденные яблоки на случайные позиции.\n</p>\n<p>\n    Что нужно сделать для каждого яблока:\n</p>\n<ul>\n    <li>\n        Проверить, столкнулся ли игрок с яблоком.<br />Если столкнулся, то:\n        <ol>\n            <li>Перемещаем яблоко в случайное место</li>\n            <li>Добавляем игроку одно очко</li>\n        </ol>\n    </li>\n</ul>",
+    "order": 4,
+    "name": "minigame1-4",
+    "appName": "minigame",
+    "mainPage": "points.html",
+    "preferredIframeWidth": 650,
+    "preferredIframeHeight": 520,
+    "variables": [
+        {
+            "name": "getAllPoints()",
+            "title": "Получить список яблок",
+            "description": "Возвращает массив яблок, которые есть на карте"
+        },
+        {
+            "name": "engine.isElementsIntersects(objectA, objectB)",
+            "title": "Пересекаются ли объекты?",
+            "description": "Проверяет, пересекаются ли <var>objectA</var> и <var>objectB</var>.<br />Если пересекаются, возвращает <var>true</var>, иначе - <var>false</var>."
+        },
+        {
+            "name": "movePointToRandomFreePlace(point)",
+            "title": "Переместить яблоко",
+            "description": "Перемещает яблоко (<var>point</var>) в случайную свободную точку на карте"
+        },
+        {
+            "name": "setScore(score)",
+            "title": "Изменить счет",
+            "description": "Устанавливает текущий счет равным <var>score</var>"
+        },
+        {
+            "name": "getScore()",
+            "title": "Получить счет",
+            "description": "Возвращает текущий счет"
+        }
+    ],
+    "files": [
+        {
+            "file": "games/points.js",
+            "codeFrames": [
+                {
+                    "visibleLines": "65-72",
+                    "editableLines": "66-71",
+                    "removedLines": "66-71"
+                }
+            ]
+        }
+    ]
+}

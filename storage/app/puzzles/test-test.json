@@ -18,16 +18,17 @@
             "file": "index.html",
             "codeFrames": [
                 {
-                    "visibleLines": "11-13",
-                    "editableLines": "12-12",
-                    "removedLines": "12-12"
+                    "visibleLines": "11-15",
+                    "editableLines": "12-14",
+                    "removedLines": "12-14"
                 },
                 {
-                    "visibleLines": "18-20",
-                    "editableLines": "18-18"
+                    "visibleLines": "20-22",
+                    "editableLines": "20-20",
+                    "replacement": "<button id='generate-button' data-asdf='zxcv'>\n    Qwer"
                 },
                 {
-                    "removedLines": "15-15"
+                    "removedLines": "17-17"
                 }
             ]
         },

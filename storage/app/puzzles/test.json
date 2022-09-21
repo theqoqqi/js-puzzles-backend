@@ -19,11 +19,14 @@
             "codeFrames": [
                 {
                     "visibleLines": "11-14",
-                    "editableLines": "12-12"
+                    "editableLines": "12-12",
+                    "description": null
                 },
                 {
                     "visibleLines": "15-17",
-                    "editableLines": "15-15"
+                    "editableLines": "15-15",
+                    "title": "Вот это залупа",
+                    "description": "<h1>Большая залупа</h1>"
                 }
             ]
         },

@@ -1,0 +1,41 @@
+
+.board {
+    background: url('../textures/sandstone_bottom.png');
+}
+
+.overlay {
+    background: url('../textures/overlay_fon.png');
+    background-size: cover;
+}
+
+.element {
+    background-size: 32px 32px;
+}
+
+.wall {
+    background-image: url('../textures/acacia_planks.png');
+}
+
+.point {
+    background-image: url('../textures/apple.png');
+}
+
+.snake-head {
+    background-image: url('../textures/snake-face.png');
+}
+
+.snake-body {
+    background-image: url('../textures/green_concrete.png');
+}
+
+.stats-bar {
+    background: url('../textures/beehive_end.png') repeat;
+    background-size: 32px 32px;
+}
+
+.stats-bar-panel {
+    color: black;
+    font-family: cursive;
+    font-size: 20px;
+    font-weight: 400;
+}
